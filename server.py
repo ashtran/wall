@@ -7,11 +7,13 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$') #emai
 NAME_REGEX= re.compile(r'[a-zA-Z]') #name format
 
 app = Flask(__name__)
-mysql = MySQLConnector(app, 'logreg')
+mysql = MySQLConnector(app, 'wall')
 app.secret_key="ThisisSecret!"
 
 @app.route('/', methods=['GET'])
 def index():
+    if 'user_id' in session and 'first_name' in session:
+        return redirect('/wall')
     return render_template("index.html")
 
 @app.route('/login', methods=['POST'])
@@ -22,7 +24,7 @@ def login():
     query_data={'email':email, 'password':password}
     user= mysql.query_db(user_query,query_data)
     if user:
-        return redirect('success')
+        return redirect('/wall')
     else:
         flash(u"User email or password invalid","login")
     return redirect('/')
@@ -49,10 +51,24 @@ def namevalid():
         insert_query="INSERT INTO users(first_name,last_name,email,password,created_at,updated_at) VALUES (:first_name, :last_name, :email, :password, NOW(), NOW())"
         query_data={'first_name':first_name,'last_name':last_name, 'email':email, 'password':password}
         mysql.query_db(insert_query,query_data)
-        return redirect('/success')
+        return redirect('/wall')
     return redirect('/')
-@app.route('/success')
-def success():
-    return render_template("success.html")
+
+@app.route('/wall')
+def userwall():
+    msg_query="SELECT messages.id, messages.message, DATE_FORMAT(messages.created_at,'%b %d %Y'), users.id, users.first_name, users.last_name FROM messages JOIN users ON messages.user_id=users.id order BY DATE_FORMAT(messages.created_at,'%b %d %Y') DESC"
+    messages=mysql.query_db(msg_query)
+    return render_template('wall.html', all_messages=messages)
+
+@app.route('/message', methods=['POST'])
+def addmessage():
+    if 'message' in request.form:
+        msg_query="INSERT INTO messages (user_id, message, created_at, updated_at) VALUES (:user_id, :message, NOW(), NOW())"
+        msg_data={
+            'user_id':session['user_id'],
+            'message':request.form['message']
+        }
+        mysql.query_db(msg_query,msg_data)
+    return redirect('/wall')
 
 app.run(debug=True)
