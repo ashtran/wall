@@ -62,13 +62,25 @@ def namevalid():
 def userwall():
     msg_query="SELECT messages.id, messages.message, DATE_FORMAT(messages.created_at,'%b %d %Y'), users.id, users.first_name, users.last_name FROM messages JOIN users ON messages.user_id=users.id order BY DATE_FORMAT(messages.created_at,'%b %d %Y') DESC"
     messages=mysql.query_db(msg_query)
-    return render_template('wall.html', all_messages=messages)
+
+    comment_query="SELECT comments.id, comments.comment, DATE_FORMAT(comments.created_at,'%b %d %Y'), users.id, users.first_name, users.last_name FROM comments JOIN users ON comments.user_id=users.id order BY DATE_FORMAT(comments.created_at,'%b %d %Y') DESC"
+    comments=mysql.query_db(comment_query)
+    session['message_id']=int(messages[0]['id'])
+
+    return render_template('wall.html', all_messages=messages, all_comments=comments)
 
 @app.route('/message', methods=['POST'])
 def addmessage():
     addmsg_query="INSERT INTO messages (user_id, message, created_at, updated_at) VALUES (:user_id,:message,NOW(),NOW())"
     addmsg_data={'user_id':session['user_id'],'message':request.form['message']}
     mysql.query_db(addmsg_query,addmsg_data)
+    return redirect('/wall')
+
+@app.route('/comment', methods=['POST'])
+def addcomment():
+    addcomment_query="INSERT INTO comments (user_id, message_id, comment, created_at, updated_at) VALUES (:user_id,:message_id,:comment,NOW(),NOW())"
+    addcomment_data={'user_id':session['user_id'],'message_id':session['message_id'],'comment':request.form['comment']}
+    mysql.query_db(addcomment_query,addcomment_data)
     return redirect('/wall')
 
 app.run(debug=True)
