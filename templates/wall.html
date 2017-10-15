@@ -22,9 +22,23 @@
           </td>
         </tr>
       </table>
+                {% for comment in all_comments:%}
+      <table>
+        <tr>
+          <td><p class="commenthead">{{comment["first_name"]}} {{comment["last_name"]}} {{comment["DATE_FORMAT(comments.created_at,'%b %d %Y')"]}}</p>
+              <p class="commentbody">{{comment["comment"]}}</p>
+          </td>
+        </tr>
+      </table>
+                {% endfor %}
+      <p>Post a comment</p>
+      <form action="/comment" method="post">
+        <p><textarea rows="4" cols="50" name="comment"></textarea></p>
+        <p><input type="submit" value="Post a comment"></p>
+      </form>
             {% endfor %}
             {% for comment in all_comments:%}
-      <table>
+      <!-- <table>
         <tr>
           <td><p class="commenthead">{{comment["first_name"]}} {{comment["last_name"]}} {{comment["DATE_FORMAT(comments.created_at,'%b %d %Y')"]}}</p>
               <p class="commentbody">{{comment["comment"]}}</p>
@@ -36,7 +50,7 @@
       <form action="/comment" method="post">
         <p><textarea rows="4" cols="50" name="comment"></textarea></p>
         <p><input type="submit" value="Post a comment"></p>
-      </form>
+      </form> -->
     </div>
   </body>
 </html>
