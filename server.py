@@ -24,6 +24,10 @@ def login():
     query_data={'email':email, 'password':password}
     user= mysql.query_db(user_query,query_data)
     if user:
+        # id_query= "SELECT users.id FROM users WHERE users.email= :email AND users.password=:password"
+        # id_data={'email':email, 'password':password}
+        # user_id=mysql.query_db(id_query,id_data)
+        session['user_id']=int(user[0]['id'])
         return redirect('/wall')
     else:
         flash(u"User email or password invalid","login")
@@ -62,13 +66,9 @@ def userwall():
 
 @app.route('/message', methods=['POST'])
 def addmessage():
-    if 'message' in request.form:
-        msg_query="INSERT INTO messages (user_id, message, created_at, updated_at) VALUES (:user_id, :message, NOW(), NOW())"
-        msg_data={
-            'user_id':session['user_id'],
-            'message':request.form['message']
-        }
-        mysql.query_db(msg_query,msg_data)
+    addmsg_query="INSERT INTO messages (user_id, message, created_at, updated_at) VALUES (:user_id,:message,NOW(),NOW())"
+    addmsg_data={'user_id':session['user_id'],'message':request.form['message']}
+    mysql.query_db(addmsg_query,addmsg_data)
     return redirect('/wall')
 
 app.run(debug=True)
